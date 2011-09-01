@@ -6,8 +6,8 @@
 %% A list of functions to execute might be specified in the ecron application
 %% resource file as value of the `scheduled' environment variable.
 %%
-%% Each entry specifies a job and must contain the scheduled time and a MFA tuple
-%% `{Module, Function, Arguments}'.
+%% Each entry specifies a job and must contain the scheduled time and a MFA
+%% tuple `{Module, Function, Arguments}'.
 %% It's also possible to configure options for a retry algorithm to run in case
 %% MFA fails.
 %% <pre>
@@ -123,8 +123,8 @@
 %% `ExecutionDateTime = {Date, Time} ' is the exact Date and Time
 %% when the MFA, or the `fun', was executed.<br/><br/><br/>
 %% If a node is restarted while there are jobs in the list then these jobs are
-%% not lost. When Ecron starts it takes a list of scheduled MFA from the environment
-%% variable `scheduled' and inserts them into a persistent table
+%% not lost. When Ecron starts it takes a list of scheduled MFA from the
+%% environment variable `scheduled' and inserts them into a persistent table
 %% (mnesia). If an entry of the scheduled MFA specifies the same parameters
 %% values of a job already present in the table then the entry won't be inserted
 %% avoiding duplicated jobs. <br/>
@@ -182,14 +182,14 @@
          delete_event_handler/1]).
 
 %% gen_server callbacks
--export([init/1, 
-         handle_call/3, 
+-export([init/1,
+         handle_call/3,
          handle_cast/2,
          handle_info/2,
 		 terminate/2,
          code_change/3]).
 
--export([execute_job/2, 
+-export([execute_job/2,
          create_add_job/1]).
 
 -include("ecron.hrl").
@@ -245,8 +245,8 @@ install(Nodes) ->
 %% Id = term()
 %% Args = term()
 %% Pid = pid()
-%% @doc Adds a new event handler. The handler is added regardless of whether it's
-%%      already present, thus duplicated handlers may exist.
+%% @doc Adds a new event handler. The handler is added regardless of whether
+%% it's already present, thus duplicated handlers may exist.
 %% @end
 %%------------------------------------------------------------------------------
 add_event_handler(Handler, Args) ->
@@ -298,17 +298,23 @@ list_event_handlers() ->
 %% Minutes = 0..59
 %% Seconds = 0..59
 %% </pre>
-%% If `Day = last' then the MFA will be executed last day of the month.<br/>
+%% If `Day = last' then the MFA will be executed last day of the month.
+%%
 %% <code>{'*', Time}</code> runs the MFA every day at the given time and it's
-%% the same as writing <code>{{'*','*','*'}, Time}</code>.<br/>
+%% the same as writing <code>{{'*','*','*'}, Time}</code>.
+%%
 %% <code>{{'*', '*', Day}, Time}</code> runs the MFA every month at the given
-%% Day and Time. It must be `Day = 1..28 | last'<br/>
+%% Day and Time. It must be `Day = 1..28 | last'
+%%
 %% <code>{{'*', Month, Day}, Time}</code> runs the MFA every year at the given
 %% Month, Day and Time. Day must be valid for the given month or the atom
 %% `last'.
-%% If `Month = 2' then it must be `Day = 1..28 | last'<br/>
-%% Combinations of the format <code>{'*', Month, '*'}</code> are not allowed.<br/>
-%% `{{Year, Month, Day}, Time}' runs the MFA at the given Date and Time.<br/>
+%% If `Month = 2' then it must be `Day = 1..28 | last'
+%%
+%% Combinations of the format <code>{'*', Month, '*'}</code> are not allowed.
+%%
+%% `{{Year, Month, Day}, Time}' runs the MFA at the given Date and Time.
+%%
 %% Returns `{error, Reason}' if invalid parameters have been passed.
 %% @end
 %%------------------------------------------------------------------------------
@@ -329,7 +335,8 @@ insert({Date, Time} = _DateTime, MFA) ->
 %% Retry = integer() | infinity
 %% RetrySeconds = integer()
 %% MFA = {Module, Function, Args}
-%% @doc Schedules the MFA at the given Date and Time and retry if it fails. <br/>
+%% @doc Schedules the MFA at the given Date and Time and retry if it fails.
+%%
 %%      Same description of insert/2. Additionally if MFA returns
 %%      `{error, Reason}'  ecron will retry to execute
 %%      it after `RetrySeconds'. The MFA will be rescheduled for a
@@ -383,22 +390,26 @@ list() ->
 %% <b>`ID'</b> is the Job ID and should be used as argument in
 %% `delete/1'.<br/>
 %% <b>`Function To Execute'</b> says if the job refers to the
-%% MFA or the `fun' returned by MFA. <br/>
+%% MFA or the `fun' returned by MFA.
+%%
 %% <b>`Next Execution DateTime'</b> is the date and time when
-%% the job will be executed.<br/>
+%% the job will be executed.
+%%
 %% <b>`Scheduled Execution DateTime'</b> is the date and time
 %% when the job was supposed to be executed according to the given
 %% `Schedule'.`Next Execution DateTime' and
 %% `Scheduled Execution DateTime' are different if the MFA, or
 %% the `fun', failed and it will be retried later
-%% (as in the example given above).<br/>
+%% (as in the example given above).
+%%
 %% <b>`MFA'</b> is a tuple with Module, Function and Arguments as
 %% given when the job was inserted.<br/>
 %% <b>`Schedule'</b> is the schedule for the MFA as given when the
 %% job was insterted.<br/>
 %% <b>`Max Retry Times'</b> is the number of times ecron will retry to
 %% execute the job in case of failure. It may be less than the value given
-%% when the job was inserted if a failure and a retry has already occured.<br/>
+%% when the job was inserted if a failure and a retry has already occured.
+%%
 %% <b>`Retry Interval'</b> is the number of seconds ecron will wait
 %% after a failure before retrying to execute the job. It's the value given
 %% when the job was inserted.
@@ -426,11 +437,14 @@ print_list() ->
                   end,
               ExecDateTime = calendar:gregorian_seconds_to_datetime(ExecSec),
               io:format("~70c-~n",[$-]),
-              io:format("ID: ~p~nFunction To Execute: ~p~nNext Execution DateTime: ~p~n",
+              io:format("ID: ~p~nFunction To Execute: ~p~n"
+			"Next Execution DateTime: ~p~n",
                            [Id, Function, ExecDateTime]),
-              io:format("Scheduled Execution DateTime: ~w~nMFA: ~w~nSchedule: ~p~n",
+              io:format("Scheduled Execution DateTime: ~w~nMFA: ~w~n"
+			"Schedule: ~p~n",
                         [ExpectedDateTime, MFA, Schedule]),
-              io:format("Max Retry Times: ~p~nRetry Interval: ~p~n", [RetryTimes, Seconds]),
+              io:format("Max Retry Times: ~p~nRetry Interval: ~p~n",
+			[RetryTimes, Seconds]),
               io:format("~70c-~n",[$-])
       end, SortedJobs).
 
@@ -763,24 +777,33 @@ check_job({Due, _} = K, State)->
 %% @end
 %%------------------------------------------------------------------------------
 execute_job(#job{client_fun = undefined, mfa = {{M, F, A}, DueTime},
-                 retry = {RetryTimes, Interval}, schedule = Schedule}, Reschedule) ->
+                 retry = {RetryTimes, Interval}, schedule = Schedule},
+	    Reschedule) ->
     ExecutionTime = ecron_time:localtime(),
     try apply(M, F, A) of
         {apply, Fun} when is_function(Fun, 0) ->
-            notify({mfa_result, {apply, Fun}, {Schedule, {M, F, A}}, DueTime, ExecutionTime}),
-            execute_fun(Fun, Schedule,{M, F, A}, DueTime, {RetryTimes, Interval});
+            notify({mfa_result, {apply, Fun}, {Schedule, {M, F, A}},
+		    DueTime, ExecutionTime}),
+            execute_fun(
+	      Fun, Schedule,{M, F, A}, DueTime, {RetryTimes, Interval});
         ok ->
-            notify({mfa_result, ok, {Schedule, {M, F, A}}, DueTime, ExecutionTime});
+            notify({mfa_result, ok, {Schedule, {M, F, A}},
+		    DueTime, ExecutionTime});
         {ok, Data} ->
-            notify({mfa_result, {ok, Data}, {Schedule, {M, F, A}}, DueTime, ExecutionTime});
+            notify({mfa_result, {ok, Data}, {Schedule, {M, F, A}},
+		    DueTime, ExecutionTime});
         {error, Reason} ->
-            notify({mfa_result, {error, Reason}, {Schedule, {M, F, A}}, DueTime, ExecutionTime}),
-            retry({M, F, A}, undefined, Schedule, {RetryTimes, Interval}, DueTime);
+            notify({mfa_result, {error, Reason}, {Schedule, {M, F, A}},
+		    DueTime, ExecutionTime}),
+            retry(
+	      {M, F, A}, undefined, Schedule, {RetryTimes, Interval}, DueTime);
         Return ->
-            notify({mfa_result, Return, {Schedule, {M, F, A}}, DueTime, ExecutionTime})
+            notify({mfa_result, Return, {Schedule, {M, F, A}}, DueTime,
+		    ExecutionTime})
     catch
         _:Error ->
-            notify({mfa_result, Error, {Schedule, {M, F, A}}, DueTime, ExecutionTime})
+            notify(
+	      {mfa_result, Error, {Schedule, {M, F, A}}, DueTime, ExecutionTime})
     end,
     case Reschedule of
         true  -> insert(Schedule, {M, F, A}, RetryTimes, Interval);
@@ -788,7 +811,9 @@ execute_job(#job{client_fun = undefined, mfa = {{M, F, A}, DueTime},
     end;
 
 
-execute_job(#job{client_fun = {Fun, DueTime}, mfa = {MFA, _}, schedule = Schedule,
+execute_job(#job{client_fun = {Fun, DueTime},
+		 mfa = {MFA, _},
+		 schedule = Schedule,
                  retry = Retry}, _) ->
     execute_fun(Fun, Schedule, MFA, DueTime, Retry).
 
@@ -805,16 +830,19 @@ execute_fun(Fun, Schedule, MFA, DueTime, Retry) ->
             notify({fun_result, ok, {Schedule, MFA}, DueTime, ExecutionTime}),
             ok;
         {ok, Data} ->
-            notify({fun_result, {ok, Data}, {Schedule, MFA}, DueTime, ExecutionTime}),
+            notify({fun_result, {ok, Data}, {Schedule, MFA}, DueTime,
+		    ExecutionTime}),
             ok;
         {error, Reason} ->
-            notify({fun_result, {error, Reason}, {Schedule, MFA}, DueTime, ExecutionTime}),
+            notify({fun_result, {error, Reason}, {Schedule, MFA}, DueTime,
+		    ExecutionTime}),
             retry(MFA, Fun, Schedule, Retry, DueTime);
         Error ->
             notify({fun_result, Error, {Schedule, MFA}, DueTime, ExecutionTime})
       catch
           _:Error ->
-              notify({fun_result, Error, {Schedule, MFA}, DueTime, ExecutionTime})
+              notify({fun_result, Error, {Schedule, MFA}, DueTime,
+		      ExecutionTime})
       end.
 
 %%------------------------------------------------------------------------------
@@ -964,26 +992,36 @@ remove_duplicated([], _, AccJobs) ->
     AccJobs;
 remove_duplicated([{Schedule, MFA}|T], JobList, AccJobs) ->
     case lists:any(fun(J) ->
-                           element(1,J#job.mfa)==MFA andalso J#job.schedule == Schedule andalso
-                               J#job.client_fun == undefined
+                           element(1,J#job.mfa)==MFA
+			       andalso J#job.schedule == Schedule
+			       andalso J#job.client_fun == undefined
                    end, JobList) of
-        true  -> remove_duplicated(T, JobList, AccJobs); %% The MFA was already present in the table
-        false -> remove_duplicated(T, JobList, [{Schedule, MFA}|AccJobs])
+        true ->
+	    %% The MFA was already present in the table
+	    remove_duplicated(T, JobList, AccJobs);
+        false ->
+	    remove_duplicated(T, JobList, [{Schedule, MFA}|AccJobs])
     end;
 remove_duplicated([{Schedule, MFA, Retry, Sec}|T], JobList, AccJobs) ->
     case lists:any(fun(J) ->
-                           element(1,J#job.mfa) == MFA andalso J#job.schedule == Schedule andalso
-                               J#job.client_fun == undefined andalso J#job.schedule == {Retry, Sec}
+                           element(1,J#job.mfa) == MFA
+			       andalso J#job.schedule == Schedule
+			       andalso J#job.client_fun == undefined
+			       andalso J#job.schedule == {Retry, Sec}
                    end, JobList) of
-        true  -> remove_duplicated(T, JobList, AccJobs); %% The MFA was already present in the table
-        false -> remove_duplicated(T, JobList, [{Schedule, MFA, Retry, Sec}|AccJobs])
+        true ->
+	    %% The MFA was already present in the table
+	    remove_duplicated(T, JobList, AccJobs);
+        false ->
+	    remove_duplicated(T, JobList, [{Schedule, MFA, Retry, Sec}|AccJobs])
     end.
 
 get_timeout(DueSec) ->
     case DueSec - sec() of
-        Diff when Diff =< 0       -> 5;
-        Diff when Diff > 2592000  -> 2592000000; %% Check the queue once every 30 days anyway
-        Diff                      -> Diff*1000
+        Diff when Diff =< 0      -> 5;
+        Diff when Diff > 2592000 ->
+	    2592000000; %% Check the queue once every 30 days anyway
+        Diff                     -> Diff*1000
     end.
 
 create_table(Table, Opts) ->

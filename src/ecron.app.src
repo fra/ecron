@@ -1,0 +1,11 @@
+%% -*- mode: erlang; -*-
+{application, ecron,
+ [
+  {description, ""},
+  {vsn, git},
+  {registered, []},
+  {mod, {ecron_app, []}},
+  {applications, [kernel, stdlib, mnesia]},
+  {build_dependencies, []},
+  {env, [{event_handlers,[{ecron_event, []}]}]}
+ ]}.
