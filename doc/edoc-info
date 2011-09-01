@@ -1,0 +1,4 @@
+{application,ecron}.
+{packages,[]}.
+{modules,[ecron,ecron_app,ecron_event,ecron_event_handler_controller,
+          ecron_event_sup,ecron_sup,ecron_time]}.
