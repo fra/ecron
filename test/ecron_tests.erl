@@ -550,7 +550,7 @@ insert_fun_not_ok() ->
 		       retry = {5,1}}],
                  mnesia:dirty_read(?JOB_TABLE, JobKey)),
     timer:sleep(2100),
-    ?assertEqual([{UniqueKey, Schedule}], ets:lookup(ecron_test, UniqueKey)),
+    ?assertEqual([{UniqueKey, Schedule, Schedule}], ets:lookup(ecron_test, UniqueKey)),
     DueSec = Schedule+1,
     [Job] = ecron:list(),
     ?assertMatch(#job{mfa = {{ecron_tests,test_not_ok_function,[UniqueKey]},
@@ -570,10 +570,13 @@ insert_fun_not_ok() ->
                    DateTime, DateTime}], Events),
     [RetryEvent|_] = Events,
     ?assert(element(3, RetryEvent) /= undefined),
-    ets:delete_all_objects(ecron_test),
     timer:sleep(1100),
     [Job1] = ecron:list(),
-    ?assertEqual([{UniqueKey, Schedule}], ets:lookup(ecron_test, UniqueKey)),
+    TableEntries = ets:lookup(ecron_test, UniqueKey),
+    %% It checks that at least a retry has been executed
+    ?assert(length(TableEntries) >=2),
+    ?assert(lists:member({UniqueKey, Schedule, Schedule}, TableEntries)),
+    ?assert(lists:member({UniqueKey, Schedule, DueSec}, TableEntries)),
     ?assertEqual(ok, ecron:delete(Job1#job.key)),
     ?assertEqual([], ecron:list()),
     ets:delete_all_objects(ecron_test),
@@ -698,7 +701,7 @@ load_from_file_and_table() ->
     ?assertEqual(ok, ecron:insert({{'*', '*', '*'}, Time},
 				  {ecron_tests, test_function, [UniqueKey1]})),
     timer:sleep(1300),
-    ?assertEqual([{UniqueKey, Schedule}], ets:lookup(ecron_test, UniqueKey)),
+    ?assertEqual([{UniqueKey, Schedule, Schedule}], ets:lookup(ecron_test, UniqueKey)),
     ets:delete_all_objects(ecron_test),
     application:stop(ecron),
 
@@ -750,7 +753,7 @@ load_from_file_and_table() ->
                  mnesia:dirty_read(?JOB_TABLE, JobKey3)),
     ?assertEqual('$end_of_table', mnesia:dirty_next(?JOB_TABLE, JobKey3)),
     timer:sleep(6300),
-    ?assertEqual([{UniqueKey, Schedule}], ets:lookup(ecron_test, UniqueKey)),
+    ?assertMatch([{UniqueKey, Schedule, _}], ets:lookup(ecron_test, UniqueKey)),
     ?assertEqual([{UniqueKey1, test}], ets:lookup(ecron_test, UniqueKey1)),
     ?assertEqual([{UniqueKey2, test}], ets:lookup(ecron_test, UniqueKey2)),
     ?assertEqual([{UniqueKey3, test}], ets:lookup(ecron_test, UniqueKey3)),
@@ -862,7 +865,7 @@ execute_all() ->
     ?assertEqual(ok, ecron:execute_all()),
     T = calendar:datetime_to_gregorian_seconds(ecron_time:localtime()),
     timer:sleep(300),
-    ?assertEqual([{UniqueKey, T}], ets:lookup(ecron_test, UniqueKey)),
+    ?assertEqual([{UniqueKey, T, T}], ets:lookup(ecron_test, UniqueKey)),
     ?assertEqual([{UniqueKey1, T}], ets:lookup(ecron_test, UniqueKey1)),
     ?assertEqual([{UniqueKey2, T}], ets:lookup(ecron_test, UniqueKey2)),
     ?assertEqual([{UniqueKey3, T}], ets:lookup(ecron_test, UniqueKey3)),
@@ -902,7 +905,8 @@ test_function1(Key) ->
 test_not_ok_function(Key) ->
     Time = calendar:datetime_to_gregorian_seconds(ecron_time:localtime()),
     F = fun() ->
-        ets:insert(ecron_test, {Key, Time}),
+        ExecTime = calendar:datetime_to_gregorian_seconds(ecron_time:localtime()),
+        ets:insert(ecron_test, {Key, Time, ExecTime}),
         {error, retry}
     end,
     {apply, F}.
